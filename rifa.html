@@ -101,9 +101,21 @@
           fechaRegistro: new Date()
         });
       }
+      alert("✅ Boletos reservados correctamente.");
+
+      // Leer nuevamente los datos de la rifa
+      const docRef = doc(db, "rifas", rifaId);
+      const docSnap = await getDoc(docRef);
+      const dataRifa = docSnap.data();
+
+      const boletosTexto = boletosSeleccionados.join(", ");
+      const total = boletosSeleccionados.length * dataRifa.precioBoleto;
+
+      generarWhatsapp(nombre, telefono, total, boletosTexto, dataRifa);
+      window.location.reload();
 
       alert("✅ Boletos reservados correctamente.");
-      window.location.reload();
+    
     }
 
     window.onload = cargarRifa;
