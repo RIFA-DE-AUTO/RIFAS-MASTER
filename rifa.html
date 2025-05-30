@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>RIFAS MASTER - Rifa</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_YFwpvNIQPIFUsjtfSxuV45r7Hxuvh7E",
+      authDomain: "rifasmaster.firebaseapp.com",
+      projectId: "rifasmaster",
+      storageBucket: "rifasmaster.appspot.com",
+      messagingSenderId: "441338254596",
+      appId: "1:441338254596:web:c0e39d99789d193ee6ec51"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const params = new URLSearchParams(window.location.search);
+    const rifaId = params.get("id");
+
+    async function cargarRifa() {
+      const docRef = doc(db, "rifas", rifaId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById("nombreRifa").innerText = data.nombreRifa;
+        document.getElementById("precioBoleto").innerText = data.precioBoleto;
+        document.getElementById("totalBoletos").innerText = data.cantidadBoletos;
+
+        cargarBoletos(data.modoAleatorio);
+      } else {
+        alert("Rifa no encontrada");
+      }
+    }
+
+    async function cargarBoletos(modoAleatorio) {
+      const lista = document.getElementById("listaBoletos");
+      lista.innerHTML = "";
+
+      const boletosRef = collection(db, "rifas", rifaId, "boletos");
+      const querySnapshot = await getDocs(boletosRef);
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.style.display = "inline-block";
+        div.style.margin = "5px";
+        div.style.padding = "10px";
+        div.style.border = "1px solid #aaa";
+
+        if (data.estado === "disponible") {
+          div.style.backgroundColor = "#d4edda"; // verde
+        } else {
+          div.style.backgroundColor = "#f8d7da"; // rojo
+        }
+
+        let contenido = `Boleto #${data.numeroBoleto}`;
+
+        if (modoAleatorio) {
+          contenido += `<br>Oportunidades: ${data.oportunidades.join(", ")}`;
+        }
+
+        div.innerHTML = contenido;
+        lista.appendChild(div);
+      });
+    }
+
+    window.onload = cargarRifa;
+  </script>
+</head>
+<body>
+  <h1 id="nombreRifa"></h1>
+  <p>Precio por boleto: $<span id="precioBoleto"></span></p>
+  <p>Total de boletos: <span id="totalBoletos"></span></p>
+
+  <h3>Boletos disponibles:</h3>
+  <div id="listaBoletos"></div>
+</body>
+</html>
